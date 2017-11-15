@@ -46,7 +46,8 @@ func Example_customResourceDefinition() {
 			// fooclient is the CRD client instance
 			fooclient,
 			// ctx.SharedInformers manages lifecycle of all shared informers
-			// InformerFor registers the informer for the given type if it hasn't been registered already.
+			// InformerFor registers the informer for the given type if it hasn't
+      // been registered already.
 			ctx.SharedInformers.InformerFor(
 				metav1.NamespaceAll,
 				metav1.GroupVersionKind{
@@ -59,7 +60,9 @@ func Example_customResourceDefinition() {
 						fooclient,
 						metav1.NamespaceAll,
 						12*time.Hour,
-						cache.Indexers{cache.NamespaceIndex: cache.MetaNamespaceIndexFunc},
+						cache.Indexers{
+              cache.NamespaceIndex: cache.MetaNamespaceIndexFunc,
+            },
 					)
 				},
 			),
