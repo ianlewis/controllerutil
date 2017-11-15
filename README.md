@@ -47,7 +47,7 @@ func Example_customResourceDefinition() {
 			fooclient,
 			// ctx.SharedInformers manages lifecycle of all shared informers
 			// InformerFor registers the informer for the given type if it hasn't
-      // been registered already.
+ 			// been registered already.
 			ctx.SharedInformers.InformerFor(
 				metav1.NamespaceAll,
 				metav1.GroupVersionKind{
