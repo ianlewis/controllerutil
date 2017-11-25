@@ -17,7 +17,6 @@ package controller
 import (
 	"context"
 	"fmt"
-	"log"
 
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -55,8 +54,7 @@ type Controller struct {
 	// simultaneously in two different workers.
 	queue workqueue.RateLimitingInterface
 
-	INFO  *logging.Logger
-	ERROR *log.Logger
+	l *logging.Logger
 
 	workers int
 }
@@ -67,8 +65,7 @@ func New(
 	fooClient fooclientset.Interface,
 	fooInformer cache.SharedIndexInformer,
 	recorder record.EventRecorder,
-	INFO *logging.Logger,
-	ERROR *log.Logger,
+	logger *logging.Logger,
 ) *Controller {
 
 	c := &Controller{
@@ -77,8 +74,7 @@ func New(
 
 		recorder: recorder,
 
-		INFO:  INFO,
-		ERROR: ERROR,
+		l: logger,
 
 		queue:   workqueue.NewNamedRateLimitingQueue(workqueue.DefaultControllerRateLimiter(), name),
 		workers: 2,
@@ -180,7 +176,7 @@ func (c *Controller) syncHandler(key string) error {
 		return err
 	}
 
-	c.INFO.V(4).Printf("Syncing %#v", foo)
+	c.l.Info.V(4).Printf("Syncing %#v", foo)
 
 	c.recorder.Event(foo, corev1.EventTypeNormal, "Synced", fmt.Sprintf("Foo %q synced successfully", key))
 

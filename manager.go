@@ -16,7 +16,6 @@ package controllerutil
 
 import (
 	"context"
-	"log"
 
 	"golang.org/x/sync/errgroup"
 
@@ -41,9 +40,7 @@ type ControllerManager struct {
 	controllers map[string]controller.Constructor
 
 	// INFO is a wrapper around glog that allows the easy creation of loggers at certain log levels.
-	INFO *logging.Logger
-	// ERROR is a wrapper around glog that performs error logging.
-	ERROR *log.Logger
+	l *logging.Logger
 }
 
 // New creates a new controller manager.
@@ -53,8 +50,7 @@ func NewControllerManager(name string, client clientset.Interface) *ControllerMa
 		client:      client,
 		controllers: make(map[string]controller.Constructor),
 
-		INFO:  logging.NewInfoLogger("[" + name + "] "),
-		ERROR: logging.NewErrorLogger("[" + name + "] "),
+		l: logging.New("[" + name + "] "),
 	}
 }
 
@@ -67,12 +63,12 @@ func (m *ControllerManager) Register(name string, c controller.Constructor) {
 //
 // The ControllerManager starts shared informers and waits for their caches to be synced before starting controllers. Controllers do not need to wait for informers to sync.
 func (m *ControllerManager) Run(ctx context.Context) error {
-	m.INFO.V(4).Print("Starting controller manager")
+	m.l.Info.V(4).Print("Starting controller manager")
 
 	wg, ctx := errgroup.WithContext(ctx)
 
 	eventBroadcaster := record.NewBroadcaster()
-	eventBroadcaster.StartLogging(m.INFO.V(4).Printf)
+	eventBroadcaster.StartLogging(m.l.Info.V(4).Printf)
 	eventBroadcaster.StartRecordingToSink(&corev1.EventSinkImpl{Interface: m.client.CoreV1().Events("")})
 	recorder := eventBroadcaster.NewRecorder(scheme.Scheme, v1.EventSource{Component: m.name})
 
@@ -87,8 +83,7 @@ func (m *ControllerManager) Run(ctx context.Context) error {
 
 			Recorder: recorder,
 
-			InfoLogger:  logging.NewInfoLogger("[" + name + "] "),
-			ErrorLogger: logging.NewErrorLogger("[" + name + "] "),
+			Logger: logging.New("[" + name + "] "),
 		}
 		controllers[name] = fn(context)
 	}
@@ -98,7 +93,7 @@ func (m *ControllerManager) Run(ctx context.Context) error {
 		return sharedInformers.Run(ctx)
 	})
 
-	m.INFO.V(4).Print("waiting for cache sync")
+	m.l.Info.V(4).Print("waiting for cache sync")
 	if err := sharedInformers.WaitForCacheSync(ctx); err != nil {
 		return err
 	}
@@ -106,13 +101,13 @@ func (m *ControllerManager) Run(ctx context.Context) error {
 	// Start all controllers
 	for name, c := range controllers {
 		wg.Go(func() error {
-			defer m.INFO.V(4).Printf("Controller %q stopped", name)
-			m.INFO.V(4).Printf("Starting controller %q", name)
+			defer m.l.Info.V(4).Printf("Controller %q stopped", name)
+			m.l.Info.V(4).Printf("Starting controller %q", name)
 			return c.Run(ctx)
 		})
 	}
 
-	m.INFO.V(4).Print("Controller manager started")
+	m.l.Info.V(4).Print("Controller manager started")
 
 	return wg.Wait()
 }

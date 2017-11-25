@@ -40,24 +40,53 @@ func (w errorWriter) Write(data []byte) (n int, err error) {
 	return len(data), nil
 }
 
-// Logger is a simple wrapper around glog that provides a way to easily create loggers at a particular log level.
-type Logger struct {
+// InfoLogger is a simple wrapper around glog that provides a way to easily create loggers at a particular log level.
+type InfoLogger struct {
 	prefix string
 }
 
-// V returns a standard log.Logger at the particular log level. Logs will only be printed if glog was set up at a level equal to or higher than the level provided to V.
-func (l *Logger) V(level glog.Level) *log.Logger {
-	return log.New(infoWriter{level}, l.prefix, 0)
-}
-
-// NewInfoLogger returns a Logger object that provides a V method to log info messages at a particular log level.
-func NewInfoLogger(prefix string) *Logger {
-	return &Logger{
+// newInfoLogger returns a Logger object that provides a V method to log info messages at a particular log level.
+func newInfoLogger(prefix string) *InfoLogger {
+	return &InfoLogger{
 		prefix: prefix,
 	}
 }
 
-// NewErrorLogger returns a standard log.Logger that can be used to write error log messages.
-func NewErrorLogger(prefix string) *log.Logger {
+// V returns a standard log.Logger at the particular log level. Logs will only be printed if glog was set up at a level equal to or higher than the level provided to V.
+func (l *InfoLogger) V(level glog.Level) *log.Logger {
+	return log.New(infoWriter{level}, l.prefix, 0)
+}
+
+type Logger struct {
+	Info  *InfoLogger
+	Error *log.Logger
+}
+
+func New(prefix string) *Logger {
+	return &Logger{
+		Info:  newInfoLogger(prefix),
+		Error: newErrorLogger(prefix),
+	}
+}
+
+// newErrorLogger returns a standard log.Logger that can be used to write error log messages.
+func newErrorLogger(prefix string) *log.Logger {
 	return log.New(errorWriter{}, prefix, 0)
+}
+
+// PrintMulti logs the highest level message that is at or below the configured glog level
+func PrintMulti(logger *log.Logger, msgMap map[glog.Level]string) {
+	var level glog.Level
+	level = -1
+	msg := ""
+	for l, m := range msgMap {
+		if glog.V(l) && l > level {
+			level = l
+			msg = m
+		}
+	}
+
+	if level > -1 {
+		logger.Print(msg)
+	}
 }

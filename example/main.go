@@ -92,8 +92,7 @@ func main() {
 				},
 			),
 			ctx.Recorder,
-			ctx.InfoLogger,
-			ctx.ErrorLogger,
+			ctx.Logger,
 		)
 	})
 

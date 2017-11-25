@@ -15,8 +15,6 @@
 package controller
 
 import (
-	"log"
-
 	clientset "k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/record"
 
@@ -35,8 +33,6 @@ type Context struct {
 	// Recorder is used for recording Kubernetes events
 	Recorder record.EventRecorder
 
-	// InfoLogger is a logger that can be used by the controller to log information messages
-	InfoLogger *logging.Logger
-	// ErrorLogger is a logger that can be used by the controller to log error messages
-	ErrorLogger *log.Logger
+	// Logger is a logger that can be used by the controller to log info and error messages
+	Logger *logging.Logger
 }

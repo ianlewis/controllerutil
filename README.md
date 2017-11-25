@@ -63,10 +63,8 @@ func Example_customResourceDefinition() {
 			),
 			// ctx.Recorder is used for recording Kubernetes events.
 			ctx.Recorder,
-			// ctx.InfoLogger is a convenient wrapper used for logging.
-			ctx.InfoLogger,
-			// ctx.ErrorLogger is a convenient wrapper used for error logging.
-			ctx.ErrorLogger,
+			// ctx.Logger is a convenient wrapper used for logging.
+			ctx.Logger,
 		)
 	})
 
