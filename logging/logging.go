@@ -22,6 +22,8 @@ import (
 	"github.com/golang/glog"
 )
 
+type Level glog.Level
+
 type infoWriter struct {
 	level glog.Level
 }
@@ -53,8 +55,8 @@ func newInfoLogger(prefix string) *InfoLogger {
 }
 
 // V returns a standard log.Logger at the particular log level. Logs will only be printed if glog was set up at a level equal to or higher than the level provided to V.
-func (l *InfoLogger) V(level glog.Level) *log.Logger {
-	return log.New(infoWriter{level}, l.prefix, 0)
+func (l *InfoLogger) V(level Level) *log.Logger {
+	return log.New(infoWriter{glog.Level(level)}, l.prefix, 0)
 }
 
 type Logger struct {
@@ -75,12 +77,12 @@ func newErrorLogger(prefix string) *log.Logger {
 }
 
 // PrintMulti logs the highest level message that is at or below the configured glog level
-func PrintMulti(logger *log.Logger, msgMap map[glog.Level]string) {
-	var level glog.Level
+func PrintMulti(logger *log.Logger, msgMap map[Level]string) {
+	var level Level
 	level = -1
 	msg := ""
 	for l, m := range msgMap {
-		if glog.V(l) && l > level {
+		if glog.V(glog.Level(l)) && l > level {
 			level = l
 			msg = m
 		}
