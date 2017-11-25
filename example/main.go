@@ -41,6 +41,8 @@ import (
 
 func main() {
 	kubeconfig := flag.String("kubeconfig", "", "The path to a kubeconfig. Default is in-cluster config.")
+	defaultResync := flag.Duration("default-resync", 12*time.Hour, "The default amount of time between re-syncs.")
+	namespace := flag.String("namespace", metav1.NamespaceAll, "The namespace to watch. Defaults to all namespaces.")
 
 	flag.Parse()
 
@@ -79,17 +81,12 @@ func main() {
 			ctx.Client,
 			fooclient,
 			ctx.SharedInformers.InformerFor(
-				metav1.NamespaceAll,
-				metav1.GroupVersionKind{
-					Group:   examplev1.SchemeGroupVersion.Group,
-					Version: examplev1.SchemeGroupVersion.Version,
-					Kind:    "Foo",
-				},
+				&examplev1.Foo{},
 				func() cache.SharedIndexInformer {
 					return fooinformers.NewFooInformer(
 						fooclient,
-						metav1.NamespaceAll,
-						12*time.Hour,
+						*namespace,
+						*defaultResync,
 						cache.Indexers{cache.NamespaceIndex: cache.MetaNamespaceIndexFunc},
 					)
 				},

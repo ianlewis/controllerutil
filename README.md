@@ -49,12 +49,7 @@ func Example_customResourceDefinition() {
 			// InformerFor registers the informer for the given type if it hasn't
  			// been registered already.
 			ctx.SharedInformers.InformerFor(
-				metav1.NamespaceAll,
-				metav1.GroupVersionKind{
-					Group:   examplev1.SchemeGroupVersion.Group,
-					Version: examplev1.SchemeGroupVersion.Version,
-					Kind:    "Foo",
-				},
+				&examplev1.Foo{},
 				func() cache.SharedIndexInformer {
 					return fooinformers.NewFooInformer(
 						fooclient,

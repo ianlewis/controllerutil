@@ -111,13 +111,6 @@ func (c *Controller) Run(ctx context.Context) error {
 	// shut down so this allows workers to know when to stop.
 	defer c.queue.ShutDown()
 
-	c.INFO.V(4).Print("Waiting for caches to sync.")
-
-	if !cache.WaitForCacheSync(ctx.Done(), c.fooListerSynced) {
-		return fmt.Errorf("unable to sync caches")
-	}
-	c.INFO.V(4).Print("Caches are synced.")
-
 	for i := 0; i < c.workers; i++ {
 		go c.worker()
 	}

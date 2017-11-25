@@ -64,6 +64,8 @@ func (m *ControllerManager) Register(name string, c controller.Constructor) {
 }
 
 // Run starts all controllers and informers registered to the ControllerManager instance. ControllerManager assumes all registered controllers are essential to proper functioning. ControllerManager cancels all controllers and returns the first error returned by the controllers in the event of a failure. ControllerManager will not attempt to restart controllers and will simply return. As a best practice the calling process should log the returned error message and exit. It is assumed that the controller manager will be run by a supervisor process like supervisord or the Kubernetes kubelet and will be restarted gracefully if fatal errors occur.
+//
+// The ControllerManager starts shared informers and waits for their caches to be synced before starting controllers. Controllers do not need to wait for informers to sync.
 func (m *ControllerManager) Run(ctx context.Context) error {
 	m.INFO.V(4).Print("Starting controller manager")
 
@@ -76,6 +78,8 @@ func (m *ControllerManager) Run(ctx context.Context) error {
 
 	sharedInformers := informers.NewSharedInformers()
 
+	// First create all controllers and register shared informers
+	controllers := make(map[string]controller.Interface)
 	for name, fn := range m.controllers {
 		context := &controller.Context{
 			Client:          m.client,
@@ -86,17 +90,27 @@ func (m *ControllerManager) Run(ctx context.Context) error {
 			InfoLogger:  logging.NewInfoLogger("[" + name + "] "),
 			ErrorLogger: logging.NewErrorLogger("[" + name + "] "),
 		}
-		c := fn(context)
-		wg.Go(func() error {
-			m.INFO.V(4).Print("Starting controller %q", name)
-			defer m.INFO.V(4).Print("Controller %q stopped", name)
-			return c.Run(ctx)
-		})
+		controllers[name] = fn(context)
 	}
 
+	// Start shared informers that were registered by controller constructors.
 	wg.Go(func() error {
 		return sharedInformers.Run(ctx)
 	})
+
+	m.INFO.V(4).Print("waiting for cache sync")
+	if err := sharedInformers.WaitForCacheSync(ctx); err != nil {
+		return err
+	}
+
+	// Start all controllers
+	for name, c := range controllers {
+		wg.Go(func() error {
+			defer m.INFO.V(4).Printf("Controller %q stopped", name)
+			m.INFO.V(4).Printf("Starting controller %q", name)
+			return c.Run(ctx)
+		})
+	}
 
 	m.INFO.V(4).Print("Controller manager started")
 
