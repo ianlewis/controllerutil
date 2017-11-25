@@ -24,6 +24,12 @@ import (
 
 type Level glog.Level
 
+// PrintLogger is a simple interface for loggers that is implemented by both info and error loggers
+type PrintLogger interface {
+	Print(v ...interface{})
+	Printf(format string, v ...interface{})
+}
+
 type infoWriter struct {
 	level glog.Level
 }
@@ -59,6 +65,16 @@ func (l *InfoLogger) V(level Level) *log.Logger {
 	return log.New(infoWriter{glog.Level(level)}, l.prefix, 0)
 }
 
+// Print prints directly to the info logger regardless of level
+func (l *InfoLogger) Print(v ...interface{}) {
+	glog.Info(v)
+}
+
+// Printf prints directly to the info logger regardless of level
+func (l *InfoLogger) Printf(format string, v ...interface{}) {
+	glog.Infof(format, v...)
+}
+
 type Logger struct {
 	Info  *InfoLogger
 	Error *log.Logger
@@ -77,7 +93,7 @@ func newErrorLogger(prefix string) *log.Logger {
 }
 
 // PrintMulti logs the highest level message that is at or below the configured glog level
-func PrintMulti(logger *log.Logger, msgMap map[Level]string) {
+func PrintMulti(logger PrintLogger, msgMap map[Level]string) {
 	var level Level
 	level = -1
 	msg := ""
