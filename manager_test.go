@@ -41,7 +41,7 @@ func (c *TestController) Run(ctx context.Context) error {
 func TestRun(t *testing.T) {
 	client := newClient(t)
 
-	m := New("test-run", client)
+	m := NewControllerManager("test-run", client)
 	c := &TestController{}
 	m.Register("test", func(ctx *controller.Context) controller.Interface {
 		return c
