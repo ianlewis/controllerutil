@@ -10,7 +10,9 @@ controllerutil is still under active development and has not been extensively te
 
 # Motivation
 
-Kubernetes controllers are often run together as part of a single process but often it's unclear how to manage the lifecycle of each controller. This results in architectures that are error prone and don't handle edge cases well. Particularly failure cases. The goal of this library is to provide an easy way for developers of controllers to take advantage of Go programming, logging, and Kubernetes API client best practices.
+Kubernetes controllers are often run together as part of a single process but often it's unclear how to manage the lifecycle of each controller. Each controller also makes use of one or more "informers" which are used to watch the Kubernetes API for changes to objects and maintain a local cache per object type. Informers have their own lifecycle and need to managed as well.
+
+This complexity, while powerful, often results in architectures that are error prone and don't handle edge cases well; particularly failure cases. The goal of this library is to provide an easy way for developers of controllers to take advantage of Go programming, logging, and Kubernetes API client best practices.
 
 # Installation
 
