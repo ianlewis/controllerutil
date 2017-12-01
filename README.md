@@ -35,19 +35,18 @@ func Example_customResourceDefinition() {
 		// handle error
 	}
 
-	// Create a new controllerutil instance
-	m := controllerutil.Newcontrollerutil("foo", client)
+	// Create a new ControllerManager instance
+	m := controllerutil.NewControllerManager("foo", client)
 
 	// Register the foo controller.
 	m.Register("foo", func(ctx *controller.Context) controller.Interface {
 		return NewFooController(
-			// ctx.Client is the same client passed to controllerutil.NewControllerManager
+			// ctx.Client is the same client passed to controllerutil.New
 			ctx.Client,
 			// fooclient is the CRD client instance
 			fooclient,
 			// ctx.SharedInformers manages lifecycle of all shared informers
-			// InformerFor registers the informer for the given type if it hasn't
- 			// been registered already.
+			// InformerFor registers the informer for the given type if it hasn't been registered already.
 			ctx.SharedInformers.InformerFor(
 				&examplev1.Foo{},
 				func() cache.SharedIndexInformer {
@@ -55,9 +54,7 @@ func Example_customResourceDefinition() {
 						fooclient,
 						metav1.NamespaceAll,
 						12*time.Hour,
-						cache.Indexers{
-              cache.NamespaceIndex: cache.MetaNamespaceIndexFunc,
-            },
+						cache.Indexers{cache.NamespaceIndex: cache.MetaNamespaceIndexFunc},
 					)
 				},
 			),
