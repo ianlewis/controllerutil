@@ -1,5 +1,7 @@
 # Kubernetes Controller Utilities
 
+[![](https://godoc.org/github.com/ianlewis/controllerutil?status.svg)](http://godoc.org/github.com/ianlewis/controllerutil) [![Go Report Card](https://goreportcard.com/badge/github.com/ianlewis/controllerutil)](https://goreportcard.com/report/github.com/ianlewis/controllerutil)
+
 The `github.com/ianlewis/controllerutil` package provides a simple way to manage multiple Kubernetes controllers as part of a single process.
 
 # Project Status
