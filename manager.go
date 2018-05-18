@@ -29,6 +29,7 @@ import (
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 
 	"github.com/ianlewis/controllerutil/controller"
+	"github.com/ianlewis/controllerutil/handler"
 	"github.com/ianlewis/controllerutil/informers"
 	"github.com/ianlewis/controllerutil/logging"
 )
@@ -38,9 +39,13 @@ type ControllerManager struct {
 	name        string
 	client      clientset.Interface
 	controllers map[string]controller.Constructor
+	// handleObj
 
 	// INFO is a wrapper around glog that allows the easy creation of loggers at certain log levels.
 	l *logging.Logger
+}
+
+type handlerController struct {
 }
 
 // New creates a new controller manager.
@@ -57,6 +62,12 @@ func NewControllerManager(name string, client clientset.Interface) *ControllerMa
 // Register registers a controller created by the given constructor by the given name. The given name should be unique to the controller and is used in Kubernetes event recorders and logging.
 func (m *ControllerManager) Register(name string, c controller.Constructor) {
 	m.controllers[name] = c
+}
+
+// Handle registers a controller that uses the given handle to handle change events for the given type.
+func (m *ControllerManager) Handle(name string, h handler.Interface) {
+	// TODO: Create controller from Handler
+	// m.controllers[name] = c
 }
 
 // Run starts all controllers and informers registered to the ControllerManager instance. ControllerManager assumes all registered controllers are essential to proper functioning. ControllerManager cancels all controllers and returns the first error returned by the controllers in the event of a failure. ControllerManager will not attempt to restart controllers and will simply return. As a best practice the calling process should log the returned error message and exit. It is assumed that the controller manager will be run by a supervisor process like supervisord or the Kubernetes kubelet and will be restarted gracefully if fatal errors occur.
